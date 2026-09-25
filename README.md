@@ -32,6 +32,15 @@ pytest -q
 day09 --help
 ```
 
+Trên Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+Copy-Item .env.example .env
+```
+
 ## 2. Đăng ký team
 
 1. Mở `/register` trên Competition Workspace.
@@ -39,13 +48,15 @@ day09 --help
 3. Nhập registration code của lớp.
 4. Lưu Team API Key dạng `sk-team-...` được hiển thị sau khi đăng ký.
 
-Điền thông tin thật vào `.env`:
+Điền Team API Key thật vào `.env`; giữ các endpoint phù hợp với Competition Workspace:
 
 ```dotenv
-COMPETITION_API_URL=http://127.0.0.1:8081
+COMPETITION_API_URL=https://n7-competition.pages.dev
 COMPETITION_TEAM_API_KEY=sk-team-your_key
-MCP_ENDPOINT=http://127.0.0.1:8001/mcp
+MCP_ENDPOINT=https://day09-competition.34-142-201-239.sslip.io/mcp
 ```
+
+Workflow dùng Python để điều phối các agent, phân tích evidence và áp dụng policy MCP. Không tải hoặc gọi model ML/LLM; tổng tham số model sử dụng là **0**, dưới giới hạn 10 tỷ.
 
 ## 3. Tải input
 
@@ -72,7 +83,7 @@ Một số case không cung cấp exact order ID. Agent phải dùng candidate v
 
 MCP Gateway cung cấp evidence về order, customer, product, shipment, payment, refund và policy. Mọi call đều được server audit theo team và case.
 
-Xem các tool hiện có:
+Xem tên, mô tả và schema tham số của các tool hiện có:
 
 ```bash
 day09 mcp-tools
@@ -124,8 +135,7 @@ src/student_agent/workflow.py
 Hàm chính:
 
 ```python
-async def solve_case(case, gateway, trace) -> dict:
-    ...
+async def solve_case(case, gateway, trace) -> dict: ...
 ```
 
 Có thể tổ chức các vai trò:
@@ -157,6 +167,14 @@ Kết quả được tạo tại:
 outputs/<case_id>.json
 traces/trace.jsonl
 ```
+
+Các case đã xong được stage trong `.day09-run/`; `outputs/` và `traces/` chỉ bị thay khi đủ 100 case. Nếu lượt chạy bị ngắt (mất mạng, MCP timeout liên tục, Ctrl+C), chạy tiếp bằng:
+
+```bash
+day09 run --resume
+```
+
+Chạy `day09 run` không có `--resume` sẽ xóa phần đã stage và bắt đầu lại từ đầu.
 
 Nếu output pass schema nhưng điểm thấp, cần kiểm tra semantic, entity resolution, evidence, consistency, confidence, workflow và số MCP calls.
 

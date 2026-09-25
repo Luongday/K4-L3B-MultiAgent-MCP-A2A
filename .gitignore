@@ -10,6 +10,8 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.local/
+.day09-run*/
 venv/
 .pytest_cache/
 .ruff_cache/
